@@ -15,10 +15,7 @@
 @if (Materials.Any())
 {
     <div class="row">
-
-        @*--------- changable table begin --------------*@
         <div class="col-4">
-
             <EditForm Model="Materials" OnValidSubmit="Save">
                 <DataAnnotationsValidator />
 
@@ -41,9 +38,8 @@
                                         <DecimalInputF3 @bind-Value="mat.MassSum"
                                                         class="@(mat.InputCssClass + " editable-input")"
                                                         id="@($"mass-input-{i}")" />
-                                        @* <ValidationMessage For="@(() => mat.MassSum)" /> *@
                                     </td>
-                                    <td class="text-right cell-separator">
+                                    <td class="cell-separator">
                                         @mat.PreviouslyCorrectedMass?.ToString("F3")
                                     </td>
                                 </tr>
@@ -58,83 +54,33 @@
 
             </EditForm>
         </div>
-        @*--------- changable table end --------------*@
-        <div class="col-1">
-            <span></span>
-        </div>
-        @*--------- show table begin --------------*@
-        <div class="col-4">
-            <h4>Откорректированные данные</h4>
-
-            <div class="mb-2 d-flex align-items-center">
-                @* Используем flex для выравнивания в линию *@
-
-                @* === НОВЫЙ ЧЕКБОКС === *@
-                <div class="form-check">
-                    <InputCheckbox id="showCorrected" @bind-Value="showCorrectedTable" class="form-check-input" />
-                    <label for="showCorrected" class="form-check-label">Показать таблицу</label>
-                </div>
-
-                <div class="col-auto mt-2">
-                    <button class="btn btn-info me-3" @onclick="LoadCorrectedData">Обновить данные</button>
-                    <button class="btn btn-info btn-sm" @onclick="LoadCorrectedData">Показать сохраненные данные</button>
-                </div>
-
-            </div>
-
-            @if (showCorrectedTable && CorrectedMaterials.Any())
-            {
-                <table class="table-custom">
-                    <thead>
-                        <tr>
-                            <th>Наименование</th>
-                            <th>Скорр. масса</th>
-                            <th>Пользователь</th>
-                            <th>Время правки</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var corrected in CorrectedMaterials)
-                        {
-                            <tr>
-                                <td>@corrected.Name</td>
-                                <td class="text-right">@corrected.MassCorrected?.ToString("F3")</td>
-                                <td>@corrected.Username</td>
-                                <td>@corrected.CorrectedAt?.ToString("g")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-           
-        </div>
-        @*--------- show table end ----------------*@
-
     </div>
 }
 else
 {
-    <div class="col-4">
-        <div class="mb-2">
-            <table class="table-custom">
-                <thead>
-                    <tr>
-                        <th>Наименование материала</th>
-                        <th>Масса факт</th>
-                        <th>Масса коррект.</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 0; i < 15; i++)
-                    {
+    <div class="row">
+        <div class="col-4">
+            <div class="mb-2">
+                <table class="table-custom">
+                    <thead>
                         <tr>
-                            <td style="height: 24px;" class="cell-separator"><span></span></td>
-                            <td style="height: 24px;" class="cell-separator"><span></span></td>
-                            <td style="height: 24px;" class="cell-separator"><span></span></td>
+                            <th>Наименование материала</th>
+                            <th>Масса факт</th>
+                            <th>Масса коррект.</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < 15; i++)
+                        {
+                            <tr>
+                                <td style="height: 24px;" class="cell-separator"><span></span></td>
+                                <td style="height: 24px;" class="cell-separator"><span></span></td>
+                                <td style="height: 24px;" class="cell-separator"><span></span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 }
