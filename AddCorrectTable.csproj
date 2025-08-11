@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="10.3.3" />
+    <None Include="C:\temp\AddCorrectTable\.editorconfig" />
+  <None Include="SQL\Scripts\MATERIAL.sql" />
+  <None Include="SQL\Scripts\MATERIAL_DAY_VALUE.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\temp\AddCorrectTable\.editorconfig" />
+  </ItemGroup>
+
+</Project>

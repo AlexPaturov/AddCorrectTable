@@ -1,0 +1,45 @@
+﻿
+@* Это может быть любой путь, например Shared/DecimalInputF3.razor *@
+@inherits InputBase<decimal>
+
+@* 
+    Мы используем стандартный <input>, но вся магия происходит в @code.
+    Blazor автоматически добавит к этому инпуту классы valid/invalid.
+*@
+<input @attributes="AdditionalAttributes"
+       class="@CssClass"
+       type="text"
+       value="@CurrentValueAsString"
+       @onchange="EventCallback.Factory.CreateBinder<string?>(this, __value => CurrentValueAsString = __value, CurrentValueAsString)" />
+
+@code {
+    /// <summary>
+    /// Этот метод вызывается Blazor, когда нужно преобразовать введенную пользователем строку в нужный тип (decimal).
+    /// </summary>
+    protected override bool TryParseValueFromString(string? value, out decimal result, out string validationErrorMessage)
+    {
+        // Используем CultureInfo.InvariantCulture, чтобы десятичным разделителем всегда была точка.
+        if (decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsedValue))
+        {
+            result = parsedValue;
+            validationErrorMessage = null!; // Ошибки нет
+            return true;
+        }
+        else
+        {
+            // Если не удалось преобразовать, возвращаем ошибку.
+            result = default;
+            validationErrorMessage = "Пожалуйста, введите корректное число.";
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Этот метод форматирует значение (decimal) обратно в строку для отображения в <input>.
+    /// </summary>
+    protected override string? FormatValueAsString(decimal value)
+    {
+        // Форматируем с 3 знаками после запятой, используя точку как разделитель.
+        return value.ToString("F3", CultureInfo.InvariantCulture);
+    }
+}
