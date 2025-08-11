@@ -3,7 +3,7 @@ using Dapper;
 
 namespace AddCorrectTable.Services;
 
-public class MaterialService
+public class MaterialService : IMaterialService
 {
     private readonly FirebirdDbContext _db;
     public MaterialService(FirebirdDbContext db)
@@ -15,12 +15,23 @@ public class MaterialService
     {
         using var connection = _db.CreateConnection();
         var sql = @"
-            SELECT m.KODN, m.NAME, SUM(dv.MASS) AS MassSum
-            FROM MATERIAL_DAY_VALUE dv
-            JOIN MATERIAL m ON m.KODN = dv.KODN
-            WHERE dv.DAT = @Date
-            GROUP BY m.KODN, m.NAME
-            ORDER BY m.KODN";
+        SELECT 
+            m.KODN,
+            m.NAME,
+            SUM(dv.MASS) AS MassSum, 
+            c.MASS_CORRECTED AS PreviouslyCorrectedMass
+        FROM
+            MATERIAL m
+        JOIN
+            MATERIAL_DAY_VALUE dv ON m.KODN = dv.KODN
+        LEFT JOIN
+            MATERIAL_AGGREGATED_CORRECTED c ON m.KODN = c.KODN AND dv.DAT = c.DAT
+        WHERE
+            dv.DAT = @Date
+        GROUP BY
+            m.KODN, m.NAME, c.MASS_CORRECTED
+        ORDER BY
+            m.KODN";
 
         var results = await connection.QueryAsync<AggregatedMaterial>(sql, new { Date = date });
         return results.ToList();

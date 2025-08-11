@@ -12,7 +12,7 @@ public class Program
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
         builder.Services.AddScoped<FirebirdDbContext>();
-        builder.Services.AddScoped<MaterialService>();
+        builder.Services.AddScoped<IMaterialService, MaterialService>();
 
         var app = builder.Build();
 

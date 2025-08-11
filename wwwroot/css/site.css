@@ -94,6 +94,7 @@ a, .btn-link {
         text-align: left;
         background-color: #FFFFFF;
         border-bottom: 1px solid #000;
+        border-right: 1px solid #000;
         position: relative; /* Это необходимо для позиционирования псевдо-элемента */
     }
 
@@ -132,6 +133,11 @@ a, .btn-link {
             border-color: transparent; /* Прячем рамку инпута при фокусе, чтобы был виден только эффект ::after */
         }
 
+        .table-custom .editable-input::selection {
+            background-color: #a0c4ff; /* Задаем мягкий, полупрозрачный фон для выделения. Приятный светло-голубой */
+            color: #000; /* Цвет текста */
+        }
+
     /* 3. Создаем псевдо-элемент "подложку" для эффекта фокуса */
     .table-custom tbody td::after {
         content: ''; /* Обязательное свойство для псевдо-элементов */
@@ -148,7 +154,18 @@ a, .btn-link {
         z-index: 1; /* Помещаем его за инпутом */
     }
 
-    /* 4. Стили для каждого состояния */
+    .table-custom tbody tr:focus-within td {
+        /*Выбираем приятный, не слишком навязчивый цвет для подсветки.*/
+        /*Светло-желтый или светло-голубой - классический выбор.*/
+        background-color: #E6F7FF !important; /* Нежный голубой цвет */
+        /* Добавляем плавный переход для красоты */
+        transition: background-color 0.2s ease-in-out;
+    }
+    
+    /* Это правило нужно для ячейки с разделителем, чтобы она тоже меняла цвет.*/
+    .table-custom tbody tr:focus-within .cell-separator {
+        background-color: #E6F7FF !important;
+    }
 
     /* 2. ЗЕЛЕНЫЙ для валидных полей (только если они НЕ в фокусе) */
     .table-custom tbody td:has(> .valid.modified):not(:focus-within)::after {

@@ -49,4 +49,10 @@ public class AggregatedMaterial
     [NotMapped]
     public string InputCssClass => IsModified ? "editable-input input-modified" : "editable-input";
 
+    /// <summary>
+    /// Масса, которая была скорректирована и сохранена в БД ранее.
+    /// Это поле только для отображения.
+    /// </summary>
+    [NotMapped] // Указываем, что это поле не нужно сохранять в БД из этой модели
+    public decimal? PreviouslyCorrectedMass { get; set; }
 }
