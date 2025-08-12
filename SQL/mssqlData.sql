@@ -44,7 +44,7 @@ CREATE TABLE dbo.MATERIAL_AGGREGATED_CORRECTED
 GO
 
 -- ¬ыдаем права на выполнение операций пользователю 'WebAppUser'
-GRANT SELECT, INSERT, UPDATE, DELETE, REFERENCE ON dbo.MATERIAL TO public;
+GRANT SELECT, INSERT, UPDATE, DELETE ON dbo.MATERIAL TO public;
 
 -----------------------------------------------------------------------------------------------------
 -- –екомендуетс€ добавить проверку на существование таблицы, 

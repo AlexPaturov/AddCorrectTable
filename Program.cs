@@ -1,18 +1,22 @@
 using AddCorrectTable.Data;
-using AddCorrectTable.Services;
 
 namespace AddCorrectTable;
-
 public class Program
 {
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-
+        builder.Logging.ClearProviders();
+        builder.Logging.AddConsole();
+        // builder.Logging.AddEventLog(); // <-- Закомментируйте или удалите эту строку
+        builder.Logging.AddDebug();
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
-        builder.Services.AddScoped<FirebirdDbContext>();
-        builder.Services.AddScoped<IMaterialService, MaterialService>();
+        //builder.Services.AddSingleton<IDbContext, FirebirdDbContext>();
+        //builder.Services.AddScoped<IMaterialService, FirebirdMaterialService>();
+
+        builder.Services.AddScoped<IDbContext, SqlServerDbContext>();
+        builder.Services.AddScoped<IMaterialService, SqlServerMaterialService>();
 
         var app = builder.Build();
 

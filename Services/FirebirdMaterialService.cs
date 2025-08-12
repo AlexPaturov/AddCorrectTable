@@ -3,17 +3,18 @@ using Dapper;
 
 namespace AddCorrectTable.Services;
 
-public class MaterialService : IMaterialService
+public class FirebirdMaterialService : IMaterialService
 {
-    private readonly FirebirdDbContext _db;
-    public MaterialService(FirebirdDbContext db)
+    private readonly IDbContext _db;
+
+    public FirebirdMaterialService(IDbContext db)
     {
         _db = db;
     }
 
     public async Task<List<AggregatedMaterial>> GetAggregatedMaterialsAsync(DateTime date)
     {
-        using var connection = _db.CreateConnection();
+        using var connection = await _db.CreateConnectionAsync();
         var sql = @"
         SELECT 
             m.KODN,
@@ -39,7 +40,7 @@ public class MaterialService : IMaterialService
 
     public async Task<int> SaveCorrectedMaterialsAsync(IEnumerable<AggregatedMaterial> materials)
     {
-        using var connection = _db.CreateConnection();
+        using var connection = await _db.CreateConnectionAsync();
         await connection.OpenAsync();
         using var transaction = await connection.BeginTransactionAsync();
 
@@ -52,7 +53,6 @@ public class MaterialService : IMaterialService
         return result;
     }
 
-    // === НОВЫЙ МЕТОД ===
     public async Task<List<MaterialAggregatedCorrected>> GetCorrectedMaterialsAsync(DateTime date)
     {
         // SQL-запрос, который соединяет две таблицы, чтобы получить имя материала
@@ -75,7 +75,7 @@ public class MaterialService : IMaterialService
             ORDER BY
                 m.NAME";
 
-        using var connection = _db.CreateConnection();
+        using var connection = await _db.CreateConnectionAsync();
 
         var result = await connection.QueryAsync<MaterialAggregatedCorrected>(sql, new { Date = date });
         return result.ToList();
