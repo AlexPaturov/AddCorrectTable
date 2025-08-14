@@ -1,18 +1,98 @@
 ﻿@page "/counter"
+@implements IDisposable
+@inject IMaterialService MaterialService
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider authenticationStateProvider
 
-<PageTitle>Counter</PageTitle>
+<h3>@PageTitle</h3>
 
-<h1>Counter</h1>
+<div class="row mb-2 justify-content-start">
 
-<p role="status">Current count: @currentCount</p>
+    <div class="col-auto">
+        <InputDate @bind-Value="StartDate" class="form-control" />
+    </div>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+    <div class="col-auto">
+        <InputDate @bind-Value="EndDate" class="form-control" />
+    </div>
 
-@code {
-    private int currentCount = 0;
+    <div class="col-auto">
+        <button @onclick="LoadData" class="form-control" >Загрузить</button>
+    </div>
 
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
+</div>
+
+@if (Materials.Any())
+{
+    <div class="row">
+        <div class="col-4">
+            <EditForm Model="Materials" OnValidSubmit="Save">
+                <DataAnnotationsValidator />
+
+                <div class="mb-2">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Наименование материала</th>
+                                <th>Масса факт</th>
+                                <th>Масса коррект.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Materials.Count; i++)
+                            {
+                                var mat = Materials[i];
+                                <tr @key="mat.Kodn">
+                                    <td class="cell-separator">@mat.Name</td>
+                                    <td>
+                                        <DecimalInputF3 @bind-Value="mat.MassSum"
+                                                        class="@(mat.InputCssClass + " editable-input")"
+                                                        id="@($"mass-input-{i}")" />
+                                    </td>
+                                    <td class="cell-separator">
+                                        @mat.PreviouslyCorrectedMass?.ToString("F3")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+
+            </EditForm>
+        </div>
+    </div>
 }
+else
+{
+    <div class="row">
+        <div class="col-4">
+            <div class="mb-2">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Наименование материала</th>
+                            <th>Масса факт</th>
+                            <th>Масса коррект.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < 15; i++)
+                        {
+                            <tr>
+                                <td style="height: 24px;" class="cell-separator"><span></span></td>
+                                <td style="height: 24px;" class="cell-separator"><span></span></td>
+                                <td style="height: 24px;" class="cell-separator"><span></span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+

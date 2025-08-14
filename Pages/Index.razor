@@ -1,86 +1,13 @@
 ﻿@page "/"
-@implements IDisposable 
-@inject IMaterialService MaterialService
-@inject IJSRuntime JSRuntime 
+@inject NavigationManager navManager
 
-<h3>Материалы за @SelectedDate.ToShortDateString()</h3>
+<h1>home</h1>
 
-<div class="row mb-2">
-    <div class="col-3">
-        <InputDate @bind-Value="SelectedDate" />
-        <button @onclick="LoadData">Загрузить</button>
-    </div>
-</div>
+<button onclick="@SecurePage">Secure page</button>
 
-@if (Materials.Any())
-{
-    <div class="row">
-        <div class="col-4">
-            <EditForm Model="Materials" OnValidSubmit="Save">
-                <DataAnnotationsValidator />
-
-                <div class="mb-2">
-                    <table class="table-custom">
-                        <thead>
-                            <tr>
-                                <th>Наименование материала</th>
-                                <th>Масса факт</th>
-                                <th>Масса коррект.</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @for (int i = 0; i < Materials.Count; i++)
-                            {
-                                var mat = Materials[i];
-                                <tr @key="mat.Kodn">
-                                    <td class="cell-separator">@mat.Name</td>
-                                    <td >
-                                        <DecimalInputF3 @bind-Value="mat.MassSum"
-                                                        class="@(mat.InputCssClass + " editable-input")"
-                                                        id="@($"mass-input-{i}")" />
-                                    </td>
-                                    <td class="cell-separator">
-                                        @mat.PreviouslyCorrectedMass?.ToString("F3")
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary">Сохранить</button>
-                </div>
-
-            </EditForm>
-        </div>
-    </div>
-}
-else
-{
-    <div class="row">
-        <div class="col-4">
-            <div class="mb-2">
-                <table class="table-custom">
-                    <thead>
-                        <tr>
-                            <th>Наименование материала</th>
-                            <th>Масса факт</th>
-                            <th>Масса коррект.</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (int i = 0; i < 15; i++)
-                        {
-                            <tr>
-                                <td style="height: 24px;" class="cell-separator"><span></span></td>
-                                <td style="height: 24px;" class="cell-separator"><span></span></td>
-                                <td style="height: 24px;" class="cell-separator"><span></span></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+@code{
+    private void SecurePage()
+    {
+        navManager.NavigateTo("/counter", true);
+    }   
 }
