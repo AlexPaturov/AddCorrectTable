@@ -1,17 +1,26 @@
-﻿@inherits InputBase<decimal>
+﻿@inherits InputBase<decimal?>
 
 <input @attributes="AdditionalAttributes"
        type="text"
        class="@CssClass"
        value="@CurrentValueAsString"
-       @onchange="e => CurrentValueAsString = e.Value.ToString()" />
+       @onchange="e => CurrentValueAsString = e.Value.ToString()" 
+       onkeydown="allowOnlyNumericInput(event)" />
 
 @code {
     /// <summary>
     /// Blazor вызывает этот метод, чтобы преобразовать введенную пользователем строку в decimal.
     /// </summary>
-    protected override bool TryParseValueFromString(string? value, out decimal result, out string validationErrorMessage)
+    protected override bool TryParseValueFromString(string? value, out decimal? result, out string validationErrorMessage)
     {
+        // Если строка пустая, это валидное состояние для nullable-типа
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            result = null; // Результат - null
+            validationErrorMessage = null;
+            return true;
+        }
+
         // Заменяем запятую на точку для универсальности
         var normalizedValue = value?.Replace(',', '.');
 
@@ -24,7 +33,7 @@
         }
         else
         {
-            result = default; // Возвращаем 0, так как тип не nullable
+            result = null; // Возвращаем 0, так как тип не nullable
             validationErrorMessage = "Неверный формат числа.";
             return false;
         }
@@ -33,8 +42,8 @@
     /// <summary>
     /// Blazor вызывает этот метод, чтобы отформатировать значение decimal обратно в строку.
     /// </summary>
-    protected override string? FormatValueAsString(decimal value)
+    protected override string? FormatValueAsString(decimal? value)
     {
-        return value.ToString("F3", CultureInfo.InvariantCulture);
+        return value?.ToString("F3", CultureInfo.InvariantCulture);
     }
 }
