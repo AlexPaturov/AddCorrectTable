@@ -9,11 +9,11 @@ public class AggregatedMaterial
     public string Name { get; set; } = string.Empty;
     public DateTime Date { get; set; }
 
-    private decimal _massSum;
+    private decimal? _massSum;
 
     [Required(ErrorMessage = "Масса не может быть пустой")]
     [Range(0.0, 999999.999, ErrorMessage = "Масса должна быть положительным числом")]
-    public decimal MassSum
+    public decimal? MassSum
     {
         get => _massSum;
         set
