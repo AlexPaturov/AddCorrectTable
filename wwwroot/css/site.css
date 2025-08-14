@@ -185,4 +185,111 @@ a, .btn-link {
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); /* Синее свечение */
     }
 
-    
+/* --- СТИЛИ ДЛЯ ЗАГОЛОВКА СТРАНИЦЫ --- */
+.page-title {
+    font-size: 2rem; /* Увеличиваем размер */
+    font-weight: 600; /* Делаем шрифт жирнее */
+    color: #333; /* Темно-серый цвет */
+    margin-bottom: 1.5rem; /* Увеличиваем отступ снизу */
+    border-bottom: 2px solid #e0e0e0; /* Добавляем тонкую линию-подчеркивание */
+    padding-bottom: 0.5rem;
+}
+
+/* --- СТИЛИ ДЛЯ ПАНЕЛИ ВЫБОРА ДАТ --- */
+.date-range-selector {
+    display: flex; /* Выстраиваем элементы в ряд */
+    align-items: center; /* Выравниваем по центру по вертикали */
+    background-color: #f8f9fa; /* Очень светлый фон */
+    border: 1px solid #dee2e6;
+    border-radius: 8px; /* Скругляем углы */
+    padding: 8px; /* Внутренние отступы */
+    max-width: 800px; /* Ограничиваем ширину */
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Легкая тень */
+}
+
+    /* Стиль для подписей "С" и "По" */
+    .date-range-selector .date-label {
+        margin: 0 8px;
+        font-weight: 500;
+        color: #495057;
+        white-space: nowrap; /* Запрещаем перенос строки */
+    }
+
+    /* Стиль для полей ввода даты */
+    .date-range-selector .form-control {
+        flex-grow: 1; /* Поле будет растягиваться, чтобы занять свободное место */
+        border: 1px solid #ced4da;
+        border-radius: 6px; /* Небольшое скругление */
+        padding: 6px 10px;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+
+        .date-range-selector .form-control:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, .25);
+        }
+
+    /* Стиль для кнопки "Загрузить" */
+    .date-range-selector .btn-load-data {
+        margin-left: 16px; /* Отступ слева */
+        background-color: #0d6efd; /* Синий цвет Bootstrap */
+        color: white;
+        font-weight: 500;
+        border: none;
+        border-radius: 6px;
+        padding: 7px 16px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        min-width: 130px; /* поигратиься с размерами кнопки чтобы спиннер не вылазил  TODO */
+    }
+
+        .date-range-selector .btn-load-data:hover {
+            background-color: #0b5ed7;
+        }
+
+/* --- СТИЛИ ДЛЯ ГЛАВНОЙ КНОПКИ "СОХРАНИТЬ" --- */
+
+.btn-save-main {
+    display: inline-flex; /* Используем flex для центрирования иконки и текста */
+    align-items: center;
+    justify-content: center;
+    /* Размеры и отступы */
+    padding: 10px 24px;
+    font-size: 1rem; /* Размер шрифта */
+    font-weight: 600; /* Жирность шрифта */
+    /* Внешний вид */
+    background-color: #0d6efd; /* Основной синий цвет Bootstrap */
+    color: white;
+    border: none;
+    border-radius: 8px; /* Скругление углов */
+    /* Эффекты */
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out, box-shadow 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Легкая тень */
+}
+
+    /* Эффект при наведении курсора */
+    .btn-save-main:hover {
+        background-color: #0b5ed7; /* Чуть темнее */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Тень становится заметнее */
+    }
+
+    /* Эффект при нажатии */
+    .btn-save-main:active {
+        transform: translateY(1px); /* Легкое "вдавливание" */
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Стили для неактивной кнопки */
+    .btn-save-main:disabled {
+        background-color: #6c757d; /* Серый цвет */
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    /* Стиль для иконки внутри кнопки (если вы захотите ее добавить) */
+    .btn-save-main .btn-icon {
+        margin-right: 8px; /* Отступ между иконкой и текстом */
+        font-size: 1.1rem; /* Сделаем иконку чуть крупнее текста */
+    }

@@ -8,15 +8,17 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole();
-        // builder.Logging.AddEventLog(); // <-- Закомментируйте или удалите эту строку
         builder.Logging.AddDebug();
         builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
+
+        #region Swithch the providers between mssql and firebird
         //builder.Services.AddSingleton<IDbContext, FirebirdDbContext>();
         //builder.Services.AddScoped<IMaterialService, FirebirdMaterialService>();
 
         builder.Services.AddScoped<IDbContext, SqlServerDbContext>();
         builder.Services.AddScoped<IMaterialService, SqlServerMaterialService>();
+        #endregion
 
         var app = builder.Build();
 

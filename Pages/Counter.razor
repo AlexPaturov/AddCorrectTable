@@ -4,23 +4,28 @@
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider authenticationStateProvider
 
-<h3>@PageTitle</h3>
+<h3 class="page-title">@PageTitle</h3>
 
-<div class="row mb-2 justify-content-start">
+<div class="date-range-selector mb-4">
+    <span class="date-label">Дата начала:</span>
+    <InputDate @bind-Value="StartDate" class="form-control" />
 
-    <div class="col-auto">
-        <InputDate @bind-Value="StartDate" class="form-control" />
-    </div>
+    <span class="date-label">Дата окончания:</span>
+    <InputDate @bind-Value="EndDate" class="form-control" />
 
-    <div class="col-auto">
-        <InputDate @bind-Value="EndDate" class="form-control" />
-    </div>
-
-    <div class="col-auto">
-        <button @onclick="LoadData" class="form-control" >Загрузить</button>
-    </div>
-
+    <button class="btn-load-data" @onclick="LoadData" disabled="@isLoading">
+        @if (isLoading)
+        {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span class="ms-2">Загрузка...</span>
+        }
+        else
+        {
+            <span>Загрузить</span>
+        }
+    </button>
 </div>
+
 
 @if (Materials.Any())
 {
@@ -58,8 +63,18 @@
                     </table>
                 </div>
 
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                <div class="col-auto mt-3">
+                    <button type="submit" class="btn-save-main" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span>Сохранение...</span>
+                        }
+                        else
+                        {
+                            <span>Сохранить</span>
+                        }
+                    </button>
                 </div>
 
             </EditForm>

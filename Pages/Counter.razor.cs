@@ -9,8 +9,12 @@ namespace AddCorrectTable.Pages
         private DateTime StartDate = DateTime.Today;
         private DateTime EndDate = DateTime.Today;
         private DotNetObjectReference<Counter> dotNetHelper;            // Ссылка на наш компонент
+        private bool isSaving = false;
+        private bool isLoading = false;
 
-        // --- НОВОЕ ВЫЧИСЛЯЕМОЕ СВОЙСТВО ДЛЯ ЗАГОЛОВКА ---
+        /// <summary>
+        /// ВЫЧИСЛЯЕМОЕ СВОЙСТВО ДЛЯ ЗАГОЛОВКА
+        /// </summary>
         private string PageTitle
         {
             get
@@ -46,7 +50,20 @@ namespace AddCorrectTable.Pages
         /// <returns></returns>
         private async Task LoadData()
         {
-            Materials = await MaterialService.GetAggregatedMaterialsAsync(StartDate, EndDate);
+            isLoading = true;
+            Task.Delay(12000);
+            try
+            {
+                Materials = await MaterialService.GetAggregatedMaterialsAsync(StartDate, EndDate);
+            }
+            catch (Exception ex)
+            {
+                // logget.log(ex) -> TODO
+            }
+            finally 
+            {
+                isLoading = false;
+            }
         }
 
         /// <summary>
@@ -55,14 +72,16 @@ namespace AddCorrectTable.Pages
         /// <returns></returns>
         private async Task Save()
         {
-            var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
+            if (!Materials.Any()) return;
+                var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
             var userName = user.Identity?.IsAuthenticated == true ? user.Identity.Name : "Anonymous";
 
             // Отправляем на сохранение только измененные объекты
             //var Materials = Materials.Where(m => m.IsModified).ToList();
 
-            if (Materials.Any())
+            isSaving = true;
+            try
             {
                 var count = await MaterialService.SaveCorrectedMaterialsAsync(Materials, StartDate, EndDate, userName);
                 Console.WriteLine($"Сохранено: {count} записей");
@@ -75,6 +94,14 @@ namespace AddCorrectTable.Pages
 
                 await LoadData();
                 StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                // logget.log(ex) -> TODO
+            }
+            finally 
+            {
+                isSaving = false;
             }
         }
 
