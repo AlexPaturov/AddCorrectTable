@@ -13,97 +13,149 @@ public class SqlServerMaterialService : IMaterialService
         _dbContext = dbContext;
     }
 
-    public async Task<List<AggregatedMaterial>> GetAggregatedMaterialsAsync(DateTime date)
+    /// <summary>
+    /// Асинхронно получает агрегированные данные по материалам за указанный диапазон дат.
+    /// </summary>
+    /// <param name="startDate">Начальная дата диапазона.</param>
+    /// <param name="endDate">Конечная дата диапазона.</param>
+    /// <returns>Список агрегированных материалов.</returns>
+    public async Task<List<AggregatedMaterial>> GetAggregatedMaterialsAsync(DateTime startDate, DateTime endDate)
     {
+        // === SQL-ЗАПРОС НА T-SQL С ПРЕДВАРИТЕЛЬНОЙ АГРЕГАЦИЕЙ ===
         var sql = @"
-            SELECT 
-                m.KODN,
-                m.NAME,
-                SUM(dv.MASS) AS MassSum,
-                MAX(c.MASS_CORRECTED) AS PreviouslyCorrectedMass
-            FROM 
-                MATERIAL m
-            JOIN 
-                MATERIAL_DAY_VALUE dv ON m.KODN = dv.KODN
-            LEFT JOIN 
-                MATERIAL_AGGREGATED_CORRECTED c ON m.KODN = c.KODN AND dv.DAT = c.DAT
-            WHERE 
-                dv.DAT = @Date
-            GROUP BY 
-                m.KODN, m.NAME
-            ORDER BY
-                m.KODN";
+        -- CTE (Common Table Expression) для агрегации фактической массы
+        WITH FactMass AS (
+            SELECT
+                KODN,
+                SUM(MASS) as TotalFactMass
+            FROM
+                MATERIAL_DAY_VALUE
+            WHERE
+                DAT BETWEEN @StartDate AND @EndDate -- Используем диапазон
+            GROUP BY
+                KODN
+        ),
+        -- CTE для агрегации скорректированной массы
+        CorrectedMass AS (
+            SELECT
+                KODN,
+                SUM(MASS_CORRECTED) as TotalCorrectedMass
+            FROM
+                MATERIAL_AGGregated_CORRECTED
+            WHERE
+                DAT BETWEEN @StartDate AND @EndDate -- Используем диапазон
+            GROUP BY
+                KODN
+        )
+        -- Финальный SELECT, который соединяет уже готовые агрегаты
+        SELECT 
+            m.KODN,
+            m.NAME,
+            fm.TotalFactMass AS MassSum,
+            cm.TotalCorrectedMass AS PreviouslyCorrectedMass
+        FROM 
+            MATERIAL m
+        LEFT JOIN 
+            FactMass fm ON m.KODN = fm.KODN
+        LEFT JOIN
+            CorrectedMass cm ON m.KODN = cm.KODN
+        -- Включаем в результат только те материалы, по которым есть хоть какие-то данные за период
+        WHERE 
+            fm.TotalFactMass IS NOT NULL OR cm.TotalCorrectedMass IS NOT NULL
+        ORDER BY
+            m.KODN";
 
         await using var connection = _dbContext.CreateConnection();
-        var result = await connection.QueryAsync<AggregatedMaterial>(sql, new { Date = date });
+        var result = await connection.QueryAsync<AggregatedMaterial>(sql, new { StartDate = startDate, EndDate = endDate });
         return result.ToList();
     }
 
-    public async Task<List<MaterialAggregatedCorrected>> GetCorrectedMaterialsAsync(DateTime date)
-    {
-        // === T-SQL ВЕРСИЯ ЗАПРОСА ===
-        var sql = @"
-            SELECT 
-                c.ID, 
-                c.KODN, 
-                m.NAME,
-                c.MASS_CORRECTED AS MassCorrected, 
-                c.DAT, 
-                c.[COMMENT], -- Берем в скобки, так как COMMENT - зарезервированное слово
-                c.USERNAME, 
-                c.CORRECTED_AT
-            FROM 
-                MATERIAL_AGGREGATED_CORRECTED c
-            LEFT JOIN 
-                MATERIAL m ON c.KODN = m.KODN
-            WHERE 
-                c.DAT = @Date
-            ORDER BY
-                m.NAME";
+    // Services/SqlServerMaterialService.cs
 
-        await using var connection = _dbContext.CreateConnection();
-        var result = await connection.QueryAsync<MaterialAggregatedCorrected>(sql, new { Date = date });
-        return result.ToList();
-    }
-
-    // public async Task<int> SaveCorrectedMaterialsAsync(IEnumerable<AggregatedMaterial> materials, string? userName)
-    public async Task<int> SaveCorrectedMaterialsAsync(IEnumerable<AggregatedMaterial> materials)
+    /// <summary>
+    /// Сохраняет скорр. данные в MS SQL. Если выбран диапазон, равномерно распределяет массу по дням,
+    /// прибавляя остаток от деления к последнему дню для сохранения точности.
+    /// </summary>
+    public async Task<int> SaveCorrectedMaterialsAsync(IEnumerable<AggregatedMaterial> materials, DateTime startDate, DateTime endDate, string? userName)
     {
+        // 1. Вычисляем количество дней.
+        int numberOfDays = (endDate.Date - startDate.Date).Days + 1;
+        if (numberOfDays <= 0)
+        {
+            return 0;
+        }
+
+        // 2. Устанавливаем соединение и начинаем транзакцию.
         await using var connection = _dbContext.CreateConnection();
         await connection.OpenAsync();
         await using var transaction = await connection.BeginTransactionAsync();
 
         try
         {
+            // 3. SQL-ЗАПРОС ДЛЯ MS SQL SERVER (MERGE).
+            // Используем стандартную для T-SQL команду "UPSERT".
             var sql = @"
-                MERGE INTO MATERIAL_AGGREGATED_CORRECTED AS Target
-                USING (SELECT @Kodn AS KODN, @Date AS DAT) AS Source
-                ON Target.KODN = Source.KODN AND Target.DAT = Source.DAT
-                WHEN MATCHED THEN
-                    UPDATE SET 
-                        MASS_CORRECTED = @MassSum,
-                        USERNAME = @UserName,
-                        CORRECTED_AT = GETDATE()
-                WHEN NOT MATCHED THEN
-                    INSERT (KODN, MASS_CORRECTED, DAT, USERNAME, CORRECTED_AT)
-                    VALUES (@Kodn, @MassSum, @Date, @UserName, GETDATE());";
+            MERGE INTO MATERIAL_AGGREGATED_CORRECTED AS Target
+            USING (SELECT @Kodn AS KODN, @Date AS DAT) AS Source
+            ON Target.KODN = Source.KODN AND Target.DAT = Source.DAT
+            -- Если запись найдена (WHEN MATCHED):
+            WHEN MATCHED THEN
+                UPDATE SET 
+                    MASS_CORRECTED = @MassCorrected,
+                    USERNAME = @UserName,
+                    CORRECTED_AT = GETDATE() -- Функция получения текущей даты в T-SQL
+            -- Если запись не найдена (WHEN NOT MATCHED):
+            WHEN NOT MATCHED THEN
+                INSERT (KODN, MASS_CORRECTED, DAT, USERNAME, CORRECTED_AT)
+                VALUES (@Kodn, @MassCorrected, @Date, @UserName, GETDATE());";
 
-            var dataToSave = materials.Select(m => new {
-                m.Kodn,
-                m.MassSum,
-                m.Date,
-                //UserName = userName
-                UserName = Environment.UserName ?? "UnknownUser" // Используем Environment.UserName для получения имени пользователя
+            int totalAffectedRows = 0;
 
-            });
+            // 4. Проходим по каждому материалу.
+            foreach (var material in materials)
+            {
+                if (!material.MassSum.HasValue)
+                {
+                    continue;
+                }
 
-            var result = await connection.ExecuteAsync(sql, dataToSave, transaction);
+                decimal totalMass = material.MassSum.Value;
+
+                // 5. Алгоритм распределения массы с остатком.
+                decimal basePortionPerDay = Math.Truncate(totalMass / numberOfDays * 1000) / 1000;
+                decimal remainder = totalMass - (basePortionPerDay * numberOfDays);
+
+                // 6. В цикле сохраняем порцию для каждого дня.
+                for (int i = 0; i < numberOfDays; i++)
+                {
+                    var currentDate = startDate.Date.AddDays(i);
+                    decimal massForThisDay = basePortionPerDay;
+
+                    if (i == numberOfDays - 1)
+                    {
+                        massForThisDay += remainder;
+                    }
+
+                    var parameters = new
+                    {
+                        Kodn = material.Kodn,
+                        MassCorrected = massForThisDay,
+                        Date = currentDate,
+                        UserName = userName
+                    };
+
+                    totalAffectedRows += await connection.ExecuteAsync(sql, parameters, transaction);
+                }
+            }
+
+            // 7. Подтверждаем транзакцию.
             await transaction.CommitAsync();
-            return result;
+            return totalAffectedRows;
         }
-        catch
+        catch (Exception ex)
         {
-            // Rollback будет вызван автоматически при выходе из await using
+            // В случае ошибки 'await using' автоматически сделает Rollback.
+            // _logger.LogError(ex, "Ошибка при сохранении скорректированных материалов в MS SQL.");
             throw;
         }
     }
